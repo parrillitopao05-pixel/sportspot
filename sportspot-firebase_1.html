@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SportSpot Madrid</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8f8f6; min-height: 100vh; }
+    input { font-family: inherit; }
+    button { font-family: inherit; }
+    .screen { min-height: 100vh; }
+    .hidden { display: none !important; }
+
+    /* ── WELCOME ── */
+    #screen-welcome {
+      background: #0a0a0a;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px; position: relative; overflow: hidden;
+    }
+    .blob { position: absolute; width: 320px; height: 320px; border-radius: 50%; filter: blur(90px); transform: translate(-50%,-50%); opacity: 0.09; }
+    #screen-welcome .logo-box {
+      width: 72px; height: 72px; border-radius: 20px; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; margin: 0 auto 28px; box-shadow: 0 8px 32px rgba(255,255,255,0.1);
+    }
+    #screen-welcome h1 { font-size: 44px; font-weight: 800; color: #fff; margin: 0 0 12px; letter-spacing: -2px; line-height: 1; font-family: Georgia, serif; }
+    #screen-welcome h1 span { color: #16a34a; }
+    #screen-welcome p { color: #777; font-size: 16px; line-height: 1.7; margin: 0 0 20px; }
+    .welcome-emojis { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; }
+    .welcome-emojis span { font-size: 26px; opacity: 0.5; }
+    .btn-primary { width: 100%; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 700; background: #fff; color: #111; border: none; cursor: pointer; }
+    .btn-secondary { width: 100%; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 600; background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.18); cursor: pointer; margin-top: 12px; }
+    .welcome-content { position: relative; text-align: center; max-width: 340px; width: 100%; }
+
+    /* ── REGISTER / AUTH SCREENS ── */
+    .auth-screen { background: #fff; display: flex; flex-direction: column; padding: 0 24px 32px; }
+    .auth-back { background: none; border: none; cursor: pointer; font-size: 22px; color: #111; padding: 0; margin-bottom: 20px; }
+    .auth-title { font-size: 28px; font-weight: 800; margin: 0 0 8px; letter-spacing: -1px; }
+    .auth-sub { color: #888; font-size: 14px; margin: 0; line-height: 1.6; }
+    .auth-header { padding-top: 52px; margin-bottom: 32px; }
+    .step-bar { display: flex; gap: 6px; margin-bottom: 32px; }
+    .step-dot { height: 4px; border-radius: 2px; transition: all 0.3s; background: #e8e8e5; flex: 1; }
+    .step-dot.active { background: #111; flex: 2; }
+
+    .google-btn {
+      width: 100%; max-width: 320px; padding: 16px; border-radius: 14px;
+      border: 1.5px solid #e0e0e0; background: #fff;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    .google-btn:disabled { opacity: 0.6; cursor: default; }
+
+    .phone-row { display: flex; gap: 10px; }
+    .phone-prefix { padding: 14px 16px; border-radius: 12px; border: 1.5px solid #e0e0e0; font-size: 15px; font-weight: 600; background: #f8f8f6; color: #555; white-space: nowrap; }
+    .phone-input { flex: 1; padding: 14px 16px; border-radius: 12px; border: 1.5px solid #e0e0e0; font-size: 15px; outline: none; }
+    .field-label { font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 8px; }
+    .text-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1.5px solid #e0e0e0; font-size: 15px; outline: none; }
+
+    .sms-boxes { display: flex; gap: 10px; justify-content: center; margin-bottom: 28px; }
+    .sms-box { width: 46px; height: 56px; text-align: center; font-size: 22px; font-weight: 700; border-radius: 12px; border: 1.5px solid #e0e0e0; outline: none; }
+    .sms-box.filled { border: 2px solid #111; }
+
+    .sport-btns { display: flex; gap: 10px; }
+    .sport-btn { flex: 1; padding: 12px 8px; border-radius: 12px; cursor: pointer; border: 1.5px solid #e0e0e0; background: #fff; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .sport-btn.selected-football { border: 2px solid #16a34a; background: #f0fdf4; }
+    .sport-btn.selected-basket   { border: 2px solid #ea580c; background: #fff7ed; }
+    .sport-btn.selected-padel    { border: 2px solid #7c3aed; background: #f5f3ff; }
+    .sport-btn span { font-size: 22px; }
+    .sport-btn small { font-size: 11px; font-weight: 600; color: #999; }
+    .sport-btn.selected-football small { color: #16a34a; }
+    .sport-btn.selected-basket   small { color: #ea580c; }
+    .sport-btn.selected-padel    small { color: #7c3aed; }
+
+    .level-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .level-btn { padding: 8px 16px; border-radius: 24px; cursor: pointer; font-size: 13px; font-weight: 600; border: 1.5px solid #e0e0e0; background: #fff; color: #666; }
+    .level-btn.selected { border: 2px solid #111; background: #111; color: #fff; }
+
+    .photo-circle {
+      width: 88px; height: 88px; border-radius: 50%; cursor: pointer;
+      background: #f0f0ee; overflow: hidden; border: 3px solid #e0e0e0;
+      display: flex; align-items: center; justify-content: center; font-size: 30px;
+      margin: 0 auto;
+    }
+    .photo-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+    .btn-action {
+      width: 100%; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 700;
+      background: #111; color: #fff; border: none; cursor: pointer;
+    }
+    .btn-action:disabled { background: #e0e0e0; color: #aaa; cursor: default; }
+    .btn-action.green { background: #16a34a; }
+
+    /* ── APP ── */
+    #screen-app { display: flex; flex-direction: column; }
+    .app-header {
+      background: #fff; border-bottom: 1px solid #eee;
+      padding: 0 20px; height: 60px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .app-header-left { display: flex; align-items: center; gap: 8px; }
+    .badge-madrid { font-size: 11px; font-weight: 600; background: #f0fdf4; color: #16a34a; padding: 2px 8px; border-radius: 20px; border: 1px solid #bbf7d0; }
+    .avatar-btn { background: none; border: none; cursor: pointer; padding: 2px; }
+    .avatar-circle { border-radius: 50%; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex-shrink: 0; }
+
+    .tab-bar { background: #fff; border-bottom: 1px solid #eee; display: flex; }
+    .tab-btn { flex: 1; padding: 12px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; }
+    .tab-btn.active { color: #111; border-bottom: 2px solid #111; }
+
+    .filter-bar { padding: 12px 20px; display: flex; gap: 8px; overflow-x: auto; background: #fff; border-bottom: 1px solid #f0f0ee; }
+    .filter-btn { padding: 7px 16px; border-radius: 24px; font-size: 13px; font-weight: 600; white-space: nowrap; background: transparent; color: #666; border: 1.5px solid #e0e0e0; cursor: pointer; }
+    .filter-btn.active-all { background: #111; color: #fff; border-color: #111; }
+    .filter-btn.active-football { background: #16a34a; color: #fff; border-color: #16a34a; }
+    .filter-btn.active-basket   { background: #ea580c; color: #fff; border-color: #ea580c; }
+    .filter-btn.active-padel    { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+
+    .map-container { display: flex; flex-wrap: wrap; }
+    .map-svg-wrap { flex: 1 1 320px; background: #fff; border-right: 1px solid #eee; }
+    .map-svg-wrap svg { width: 100%; height: 360px; }
+
+    .detail-panel { flex: 0 0 260px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .court-card { background: #fff; border-radius: 16px; border: 1px solid #eee; padding: 20px; }
+    .court-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+    .court-district { font-size: 11px; color: #aaa; margin-bottom: 3px; }
+    .court-name { font-weight: 700; font-size: 16px; line-height: 1.2; }
+    .occ-bar-wrap { background: #f8f8f6; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+    .occ-bar-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .occ-bar-bg { background: #e8e8e5; border-radius: 4px; height: 5px; overflow: hidden; }
+    .occ-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+    .avatars-row { display: flex; margin-bottom: 14px; }
+    .court-address { font-size: 12px; color: #999; margin-bottom: 16px; }
+    .join-btn { width: 100%; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 700; background: #111; color: #fff; border: none; cursor: pointer; transition: all 0.2s; }
+    .join-btn.joined { background: #f0fdf4; color: #16a34a; border: 1.5px solid #86efac; }
+
+    .empty-panel { background: #fff; border-radius: 16px; border: 1px solid #eee; padding: 24px; text-align: center; }
+    .stats-panel { background: #fff; border-radius: 16px; border: 1px solid #eee; padding: 16px; }
+    .stats-label { font-weight: 700; font-size: 11px; margin-bottom: 12px; color: #aaa; letter-spacing: 0.5px; }
+    .stats-row { display: flex; gap: 8px; }
+    .stat-box { flex: 1; text-align: center; padding: 8px 4px; border-radius: 10px; }
+
+    .list-view { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .list-card { background: #fff; border-radius: 14px; border: 1px solid #eee; padding: 16px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; }
+    .list-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .list-info { flex: 1; min-width: 0; }
+    .list-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+    .list-district { font-size: 12px; color: #888; }
+    .list-count { text-align: right; flex-shrink: 0; font-weight: 700; font-size: 14px; }
+    .list-status { font-size: 11px; }
+
+    /* ── PROFILE ── */
+    #screen-profile { background: #f8f8f6; }
+    .profile-header-bar {
+      background: #fff; border-bottom: 1px solid #eee;
+      padding: 0 20px; height: 56px; display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .profile-body { background: #fff; padding: 28px 24px 0; border-bottom: 1px solid #eee; }
+    .profile-top { display: flex; align-items: flex-start; gap: 16px; padding-bottom: 24px; }
+    .profile-name { font-size: 22px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.5px; }
+    .profile-phone { font-size: 13px; color: #888; margin: 0 0 10px; }
+    .profile-tags { display: flex; gap: 8px; }
+    .profile-tag { padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .profile-stats { display: flex; border-top: 1px solid #f0f0ee; padding: 16px 0; }
+    .profile-stat { flex: 1; text-align: center; }
+    .profile-stat-n { font-size: 20px; font-weight: 800; }
+    .profile-stat-l { font-size: 11px; color: #aaa; }
+    .profile-section { padding: 24px 24px 0; }
+    .section-title { font-size: 14px; font-weight: 700; margin: 0 0 14px; color: #555; }
+    .history-card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid #eee; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+    .history-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .logout-btn { width: 100%; padding: 14px; border-radius: 14px; font-size: 14px; font-weight: 600; background: #fff; border: 1.5px solid #e0e0e0; color: #dc2626; cursor: pointer; }
+
+    .status-msg { text-align: center; font-size: 14px; color: #555; padding: 12px; }
+    .error-msg { text-align: center; font-size: 13px; color: #dc2626; padding: 8px; }
+    .success-msg { text-align: center; font-size: 13px; color: #16a34a; font-weight: 600; padding: 8px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ WELCOME ══════════════ -->
+<div id="screen-welcome" class="screen">
+  <div class="blob" style="background:#16a34a;left:10%;top:20%"></div>
+  <div class="blob" style="background:#7c3aed;left:75%;top:60%"></div>
+  <div class="blob" style="background:#ea580c;left:30%;top:80%"></div>
+  <div class="welcome-content">
+    <div class="logo-box">🏟️</div>
+    <h1>Sport<span>Spot</span></h1>
+    <p>Encuentra personas jugando cerca de ti en Madrid.<br>En tiempo real.</p>
+    <div class="welcome-emojis"><span>⚽</span><span>🏀</span><span>🎾</span></div>
+    <button class="btn-primary" onclick="showScreen('register')">Crear cuenta gratis</button>
+    <button class="btn-secondary" onclick="showScreen('login')">Ya tengo cuenta</button>
+  </div>
+</div>
+
+<!-- ══════════════ REGISTER ══════════════ -->
+<div id="screen-register" class="screen auth-screen hidden">
+  <div class="auth-header">
+    <button class="auth-back" onclick="showScreen('welcome')">←</button>
+    <h2 class="auth-title">Crea tu cuenta</h2>
+    <p class="auth-sub">Primero conéctate con Google para verificar que eres real.</p>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot active" id="reg-dot-1"></div>
+    <div class="step-dot" id="reg-dot-2"></div>
+    <div class="step-dot" id="reg-dot-3"></div>
+    <div class="step-dot" id="reg-dot-4"></div>
+  </div>
+
+  <!-- Step 1: Google -->
+  <div id="reg-step-1" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px">
+    <div style="width:80px;height:80px;border-radius:50%;background:#f8f8f6;display:flex;align-items:center;justify-content:center;font-size:40px">🔐</div>
+    <p style="color:#777;font-size:14px;line-height:1.7;max-width:280px;text-align:center;margin:0">
+      Al conectar con Google evitamos cuentas falsas. Nunca publicamos nada en tu nombre.
+    </p>
+    <button class="google-btn" id="btn-google-register" onclick="handleGoogleRegister()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+    <div id="reg-step1-msg" class="error-msg hidden"></div>
+  </div>
+
+  <!-- Step 2: Phone -->
+  <div id="reg-step-2" class="hidden" style="flex:1;display:flex;flex-direction:column;gap:20px">
+    <div>
+      <label class="field-label">Número de teléfono</label>
+      <div class="phone-row">
+        <div class="phone-prefix">🇪🇸 +34</div>
+        <input id="reg-phone" class="phone-input" type="tel" placeholder="612 345 678" maxlength="9" oninput="this.value=this.value.replace(/\D/g,'');toggleSendSMS()">
+      </div>
+    </div>
+    <p style="font-size:13px;color:#aaa;line-height:1.6">Tu número solo se usa para verificación. No lo compartimos.</p>
+    <div id="reg-recaptcha"></div>
+    <div id="reg-step2-msg" class="error-msg hidden"></div>
+    <div style="flex:1"></div>
+    <button class="btn-action" id="btn-send-sms" onclick="handleSendSMS()" disabled>Enviar SMS</button>
+  </div>
+
+  <!-- Step 3: SMS Code -->
+  <div id="reg-step-3" class="hidden" style="flex:1;display:flex;flex-direction:column">
+    <p style="font-size:14px;color:#888;margin-bottom:28px" id="reg-phone-display"></p>
+    <div class="sms-boxes" id="sms-boxes"></div>
+    <div id="reg-step3-msg" class="hidden" style="text-align:center;font-size:14px;padding:8px"></div>
+    <div style="text-align:center;margin-top:12px">
+      <span id="reg-countdown" style="font-size:13px;color:#aaa"></span>
+      <button id="reg-resend" class="hidden" onclick="handleResendSMS()" style="background:none;border:none;font-size:13px;color:#111;font-weight:600;cursor:pointer;text-decoration:underline">Reenviar código</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Profile -->
+  <div id="reg-step-4" class="hidden" style="flex:1;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div class="photo-circle" id="photo-preview-circle" onclick="document.getElementById('photo-input').click()">📷</div>
+      <button onclick="document.getElementById('photo-input').click()" style="background:none;border:none;font-size:13px;color:#111;font-weight:600;cursor:pointer;text-decoration:underline">Subir foto de perfil</button>
+      <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoChange(this)">
+    </div>
+    <div>
+      <label class="field-label">Nombre completo *</label>
+      <input id="reg-name" class="text-input" type="text" placeholder="Ej: Carlos Martínez" oninput="toggleFinishBtn()">
+    </div>
+    <div>
+      <label class="field-label">Deporte favorito</label>
+      <div class="sport-btns">
+        <button class="sport-btn selected-football" onclick="selectSport('football')" id="sport-football"><span>⚽</span><small>Fútbol</small></button>
+        <button class="sport-btn" onclick="selectSport('basket')"   id="sport-basket"><span>🏀</span><small>Basket</small></button>
+        <button class="sport-btn" onclick="selectSport('padel')"    id="sport-padel"><span>🎾</span><small>Pádel</small></button>
+      </div>
+    </div>
+    <div>
+      <label class="field-label">Tu nivel</label>
+      <div class="level-btns" id="level-btns"></div>
+    </div>
+    <div id="reg-step4-msg" class="error-msg hidden"></div>
+    <button class="btn-action" id="btn-finish" onclick="handleFinishProfile()" disabled>Empezar a jugar 🏟️</button>
+  </div>
+</div>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="screen-login" class="screen auth-screen hidden">
+  <div class="auth-header">
+    <button class="auth-back" onclick="showScreen('welcome')">←</button>
+    <h2 class="auth-title">Bienvenido de nuevo</h2>
+    <p class="auth-sub">Entra con tu cuenta de Google.</p>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px">
+    <button class="google-btn" id="btn-google-login" onclick="handleGoogleLogin()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Entrar con Google
+    </button>
+    <div id="login-msg" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="screen-app" class="screen hidden">
+  <div class="app-header">
+    <div class="app-header-left">
+      <span style="font-size:20px">🏟️</span>
+      <span style="font-weight:800;font-size:18px;letter-spacing:-0.5px">SportSpot</span>
+      <span class="badge-madrid">Madrid</span>
+    </div>
+    <button class="avatar-btn" onclick="showScreen('profile')" id="header-avatar-btn"></button>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-map" onclick="setTab('map')">🗺 Mapa</button>
+    <button class="tab-btn" id="tab-list" onclick="setTab('list')">☰ Lista</button>
+  </div>
+  <div class="filter-bar" id="filter-bar"></div>
+  <div id="map-view" class="map-container">
+    <div class="map-svg-wrap">
+      <svg id="map-svg" viewBox="100 80 380 280"></svg>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <div class="empty-panel">
+        <div style="font-size:32px;margin-bottom:10px">📍</div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:6px">Toca una cancha</div>
+        <div style="font-size:13px;color:#aaa;line-height:1.5">Selecciona un marcador para ver quién está jugando.</div>
+      </div>
+      <div class="stats-panel">
+        <div class="stats-label">EN JUEGO AHORA</div>
+        <div class="stats-row" id="stats-row"></div>
+      </div>
+    </div>
+  </div>
+  <div id="list-view" class="list-view hidden"></div>
+</div>
+
+<!-- ══════════════ PROFILE ══════════════ -->
+<div id="screen-profile" class="screen hidden" style="min-height:100vh;background:#f8f8f6">
+  <div class="profile-header-bar">
+    <button onclick="showScreen('app')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#111;padding:0">←</button>
+    <span style="font-weight:700;font-size:16px">Mi perfil</span>
+  </div>
+  <div class="profile-body">
+    <div class="profile-top">
+      <div id="profile-avatar"></div>
+      <div style="flex:1">
+        <h2 class="profile-name" id="profile-name">—</h2>
+        <p class="profile-phone" id="profile-phone"></p>
+        <div class="profile-tags" id="profile-tags"></div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="profile-stat-n" id="stat-games">—</div><div class="profile-stat-l">Partidos</div></div>
+      <div class="profile-stat"><div class="profile-stat-n">—</div><div class="profile-stat-l">Amigos</div></div>
+      <div class="profile-stat"><div class="profile-stat-n">—</div><div class="profile-stat-l">Canchas fav.</div></div>
+    </div>
+  </div>
+  <div class="profile-section">
+    <h3 class="section-title">PARTIDOS RECIENTES</h3>
+    <div id="history-list"></div>
+  </div>
+  <div class="profile-section" style="padding-bottom:32px">
+    <button class="logout-btn" onclick="handleLogout()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDbl7vmZvWKG2iGqDFmus1P1ad3UZ92Veo",
+  authDomain: "sportspot-madrid-4bde8.firebaseapp.com",
+  projectId: "sportspot-madrid-4bde8",
+  storageBucket: "sportspot-madrid-4bde8.firebasestorage.app",
+  messagingSenderId: "300561181961",
+  appId: "1:300561181961:web:83bb0ac30ca39898ff77d8"
+};
+
+const app   = initializeApp(firebaseConfig);
+const auth  = getAuth(app);
+const db    = getFirestore(app);
+const storage = getStorage(app);
+
+// ── STATIC DATA ───────────────────────────────────────────────────────────
+const SPORTS = {
+  football: { label:"Fútbol",  emoji:"⚽", color:"#16a34a", bg:"#f0fdf4" },
+  basket:   { label:"Basket",  emoji:"🏀", color:"#ea580c", bg:"#fff7ed" },
+  padel:    { label:"Pádel",   emoji:"🎾", color:"#7c3aed", bg:"#f5f3ff" },
+};
+const LEVELS = ["Principiante","Casual","Intermedio","Avanzado","Competitivo"];
+const AVATAR_COLORS = ["#16a34a","#ea580c","#7c3aed","#0284c7","#dc2626","#d97706"];
+const COURTS = [
+  { id:1, name:"Cancha Zona Pacífico",     sport:"football", district:"Retiro",        lat:40.408, lng:-3.682, players:7,  max:10, active:true,  address:"C/ Doctor Esquerdo, Retiro" },
+  { id:2, name:"Pistas Parque del Retiro", sport:"basket",   district:"Retiro",        lat:40.415, lng:-3.684, players:4,  max:10, active:true,  address:"Parque del Retiro, Madrid" },
+  { id:3, name:"Club Deportivo Vallecas",  sport:"padel",    district:"Vallecas",      lat:40.391, lng:-3.656, players:2,  max:4,  active:true,  address:"Av. de la Albufera, Vallecas" },
+  { id:4, name:"Polideportivo Chamartín",  sport:"football", district:"Chamartín",     lat:40.461, lng:-3.677, players:3,  max:14, active:false, address:"C/ Mauricio Legendre, Chamartín" },
+  { id:5, name:"Cancha La Elipa",          sport:"basket",   district:"Ciudad Lineal", lat:40.425, lng:-3.651, players:8,  max:10, active:true,  address:"Parque de La Elipa, Ciudad Lineal" },
+  { id:6, name:"Pistas Moratalaz",         sport:"padel",    district:"Moratalaz",     lat:40.402, lng:-3.636, players:1,  max:4,  active:false, address:"C/ Arroyo de las Pilillas, Moratalaz" },
+  { id:7, name:"Cancha Lavapiés",          sport:"football", district:"Centro",        lat:40.406, lng:-3.703, players:11, max:12, active:true,  address:"C/ Mesón de Paredes, Centro" },
+  { id:8, name:"Polideportivo Arganzuela", sport:"basket",   district:"Arganzuela",    lat:40.398, lng:-3.700, players:5,  max:10, active:true,  address:"C/ Valentín Beato, Arganzuela" },
+  { id:9, name:"Club Pádel Hortaleza",     sport:"padel",    district:"Hortaleza",     lat:40.475, lng:-3.639, players:3,  max:4,  active:true,  address:"Av. de Burgos, Hortaleza" },
+];
+const MAP_DISTRICTS = [
+  { id:"centro",       path:"M200,200 L240,190 L260,220 L250,250 L210,255 L190,230 Z", label:"Centro",     cx:225, cy:225 },
+  { id:"retiro",       path:"M250,220 L290,215 L300,250 L280,270 L250,265 L240,245 Z", label:"Retiro",     cx:270, cy:243 },
+  { id:"arganzuela",   path:"M200,255 L245,250 L250,290 L230,310 L195,295 L190,265 Z", label:"Arganzuela", cx:220, cy:278 },
+  { id:"vallecas",     path:"M280,265 L330,260 L345,310 L310,330 L275,315 L270,285 Z", label:"Vallecas",   cx:308, cy:295 },
+  { id:"moratalaz",    path:"M300,250 L345,248 L355,280 L335,295 L305,288 L295,268 Z", label:"Moratalaz",  cx:325, cy:270 },
+  { id:"chamartin",    path:"M210,140 L265,135 L275,175 L255,190 L215,185 L200,160 Z", label:"Chamartín",  cx:238, cy:163 },
+  { id:"ciudadlineal", path:"M265,155 L320,148 L335,200 L305,215 L270,205 L258,178 Z", label:"C. Lineal",  cx:297, cy:182 },
+  { id:"hortaleza",    path:"M290,110 L355,105 L368,155 L335,168 L295,158 L280,133 Z", label:"Hortaleza",  cx:325, cy:137 },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+window._state = {
+  currentUser: null,
+  userProfile: null,
+  googleCredential: null,
+  confirmationResult: null,
+  selectedSport: "football",
+  selectedLevel: "Casual",
+  photoFile: null,
+  photoPreviewUrl: null,
+  activeSport: "all",
+  selectedCourt: null,
+  joined: {},
+  pulse: true,
+  activeTab: "map",
+};
+const S = window._state;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function courtPos(c) {
+  return {
+    x: ((c.lng-(-3.72))/((-3.62)-(-3.72)))*340+130,
+    y: ((40.49-c.lat)/(40.49-40.38))*280+90,
+  };
+}
+function avatarColor(name) {
+  return AVATAR_COLORS[(name?.charCodeAt(0)||0) % AVATAR_COLORS.length];
+}
+function makeAvatarEl(user, size) {
+  if (user?.photoURL) {
+    const img = document.createElement("img");
+    img.src = user.photoURL; img.alt = "av";
+    img.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;`;
+    return img;
+  }
+  const initials = user?.displayName
+    ? user.displayName.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase() : "?";
+  const div = document.createElement("div");
+  div.className = "avatar-circle";
+  div.style.cssText = `width:${size}px;height:${size}px;background:${avatarColor(user?.displayName)};font-size:${size*0.38}px;`;
+  div.textContent = initials;
+  return div;
+}
+function showMsg(id, msg, type="error") {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = type==="error" ? "error-msg" : "success-msg";
+  el.classList.remove("hidden");
+}
+function hideMsg(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add("hidden");
+}
+
+// ── SCREEN ROUTING ────────────────────────────────────────────────────────
+window.showScreen = function(name) {
+  ["welcome","register","login","app","profile"].forEach(s => {
+    const el = document.getElementById("screen-"+s);
+    if (el) el.classList.toggle("hidden", s !== name);
+  });
+  if (name === "app")     renderApp();
+  if (name === "profile") renderProfile();
+};
+
+// ── AUTH STATE ────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    S.currentUser = user;
+    const snap = await getDoc(doc(db,"users",user.uid));
+    if (snap.exists()) {
+      S.userProfile = snap.data();
+      showScreen("app");
+    } else {
+      // Logged in but no profile yet — send to profile step
+      showScreen("register");
+      goRegStep(4);
+    }
+  } else {
+    S.currentUser = null;
+    S.userProfile = null;
+    showScreen("welcome");
+  }
+});
+
+// ── GOOGLE REGISTER ───────────────────────────────────────────────────────
+window.handleGoogleRegister = async function() {
+  const btn = document.getElementById("btn-google-register");
+  btn.disabled = true; btn.textContent = "Conectando...";
+  hideMsg("reg-step1-msg");
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    S.googleCredential = result;
+    // Pre-fill name from Google
+    if (result.user.displayName) {
+      document.getElementById("reg-name").value = result.user.displayName;
+    }
+    goRegStep(2);
+  } catch(e) {
+    showMsg("reg-step1-msg", "Error al conectar con Google. Inténtalo de nuevo.");
+    btn.disabled = false; btn.textContent = "Continuar con Google";
+  }
+};
+
+// ── GOOGLE LOGIN ──────────────────────────────────────────────────────────
+window.handleGoogleLogin = async function() {
+  const btn = document.getElementById("btn-google-login");
+  btn.disabled = true; btn.textContent = "Entrando...";
+  hideMsg("login-msg");
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    // onAuthStateChanged handles redirect
+  } catch(e) {
+    showMsg("login-msg", "Error al iniciar sesión.");
+    btn.disabled = false; btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Entrar con Google`;
+  }
+};
+
+// ── SMS ───────────────────────────────────────────────────────────────────
+window.toggleSendSMS = function() {
+  const phone = document.getElementById("reg-phone").value;
+  document.getElementById("btn-send-sms").disabled = phone.length < 9;
+};
+
+window.handleSendSMS = async function() {
+  const phone = "+34" + document.getElementById("reg-phone").value;
+  hideMsg("reg-step2-msg");
+  const btn = document.getElementById("btn-send-sms");
+  btn.disabled = true; btn.textContent = "Enviando...";
+  try {
+    if (!window._recaptchaVerifier) {
+      window._recaptchaVerifier = new RecaptchaVerifier(auth, "reg-recaptcha", { size:"invisible" });
+    }
+    S.confirmationResult = await signInWithPhoneNumber(auth, phone, window._recaptchaVerifier);
+    goRegStep(3);
+    startCountdown();
+  } catch(e) {
+    showMsg("reg-step2-msg", "Error al enviar SMS. Verifica el número e inténtalo de nuevo.");
+    btn.disabled = false; btn.textContent = "Enviar SMS";
+  }
+};
+
+window.handleResendSMS = async function() {
+  document.getElementById("reg-resend").classList.add("hidden");
+  await handleSendSMS();
+};
+
+function startCountdown() {
+  let c = 30;
+  const el = document.getElementById("reg-countdown");
+  const resend = document.getElementById("reg-resend");
+  el.textContent = `Reenviar en ${c}s`;
+  resend.classList.add("hidden");
+  const t = setInterval(() => {
+    c--;
+    if (c <= 0) { clearInterval(t); el.textContent = ""; resend.classList.remove("hidden"); }
+    else el.textContent = `Reenviar en ${c}s`;
+  }, 1000);
+}
+
+// ── SMS CODE BOXES ────────────────────────────────────────────────────────
+function buildSMSBoxes() {
+  const wrap = document.getElementById("sms-boxes");
+  wrap.innerHTML = "";
+  for (let i=0; i<6; i++) {
+    const inp = document.createElement("input");
+    inp.className = "sms-box"; inp.maxLength = 1; inp.type = "tel";
+    inp.dataset.idx = i;
+    inp.addEventListener("input", async (e) => {
+      const val = e.target.value.replace(/\D/g,"");
+      e.target.value = val;
+      if (val) { e.target.classList.add("filled"); if (i<5) wrap.children[i+1].focus(); }
+      else e.target.classList.remove("filled");
+      const code = Array.from(wrap.children).map(x=>x.value).join("");
+      if (code.length === 6) await verifyCode(code);
+    });
+    inp.addEventListener("keydown", (e) => {
+      if (e.key==="Backspace" && !e.target.value && i>0) wrap.children[i-1].focus();
+    });
+    wrap.appendChild(inp);
+  }
+}
+
+async function verifyCode(code) {
+  const msgEl = document.getElementById("reg-step3-msg");
+  msgEl.textContent = "Verificando..."; msgEl.className = "success-msg"; msgEl.classList.remove("hidden");
+  try {
+    await S.confirmationResult.confirm(code);
+    msgEl.textContent = "✓ Verificado";
+    setTimeout(() => goRegStep(4), 600);
+  } catch(e) {
+    msgEl.textContent = "Código incorrecto. Inténtalo de nuevo."; msgEl.className = "error-msg";
+    document.getElementById("sms-boxes").querySelectorAll("input").forEach(x=>{ x.value=""; x.classList.remove("filled"); });
+    document.getElementById("sms-boxes").children[0].focus();
+  }
+}
+
+// ── PHOTO ─────────────────────────────────────────────────────────────────
+window.handlePhotoChange = function(input) {
+  const file = input.files[0]; if (!file) return;
+  S.photoFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    S.photoPreviewUrl = e.target.result;
+    const circle = document.getElementById("photo-preview-circle");
+    circle.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+};
+
+// ── SPORT / LEVEL SELECTION ───────────────────────────────────────────────
+window.selectSport = function(sport) {
+  S.selectedSport = sport;
+  ["football","basket","padel"].forEach(s => {
+    const btn = document.getElementById("sport-"+s);
+    btn.className = "sport-btn" + (s===sport ? " selected-"+s : "");
+  });
+};
+
+function buildLevelBtns() {
+  const wrap = document.getElementById("level-btns");
+  wrap.innerHTML = "";
+  LEVELS.forEach(l => {
+    const btn = document.createElement("button");
+    btn.className = "level-btn" + (l===S.selectedLevel ? " selected" : "");
+    btn.textContent = l;
+    btn.onclick = () => {
+      S.selectedLevel = l;
+      wrap.querySelectorAll(".level-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+window.toggleFinishBtn = function() {
+  const name = document.getElementById("reg-name").value.trim();
+  document.getElementById("btn-finish").disabled = !name;
+};
+
+// ── FINISH PROFILE ────────────────────────────────────────────────────────
+window.handleFinishProfile = async function() {
+  const name = document.getElementById("reg-name").value.trim();
+  if (!name) return;
+  const btn = document.getElementById("btn-finish");
+  btn.disabled = true; btn.textContent = "Guardando...";
+  hideMsg("reg-step4-msg");
+  try {
+    const user = auth.currentUser;
+    let photoURL = user.photoURL || null;
+    // Upload photo if selected
+    if (S.photoFile) {
+      const storageRef = ref(storage, `avatars/${user.uid}`);
+      await uploadBytes(storageRef, S.photoFile);
+      photoURL = await getDownloadURL(storageRef);
+    }
+    const profile = {
+      uid: user.uid,
+      displayName: name,
+      email: user.email || null,
+      photoURL,
+      favSport: S.selectedSport,
+      level: S.selectedLevel,
+      phone: auth.currentUser.phoneNumber || null,
+      createdAt: serverTimestamp(),
+      gamesPlayed: 0,
+    };
+    await setDoc(doc(db,"users",user.uid), profile);
+    S.userProfile = profile;
+    showScreen("app");
+  } catch(e) {
+    showMsg("reg-step4-msg", "Error al guardar el perfil: " + e.message);
+    btn.disabled = false; btn.textContent = "Empezar a jugar 🏟️";
+  }
+};
+
+// ── REGISTER STEP NAV ─────────────────────────────────────────────────────
+function goRegStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById("reg-step-"+i);
+    if (el) el.classList.toggle("hidden", i!==n);
+    const dot = document.getElementById("reg-dot-"+i);
+    if (dot) dot.classList.toggle("active", i<=n);
+  });
+  if (n===3) {
+    buildSMSBoxes();
+    const phone = document.getElementById("reg-phone").value;
+    document.getElementById("reg-phone-display").textContent =
+      `Hemos enviado un SMS al +34 ${phone.replace(/(\d{3})(\d{3})(\d{3})/,"$1 $2 $3")}`;
+  }
+  if (n===4) buildLevelBtns();
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────
+window.handleLogout = async function() {
+  await signOut(auth);
+  S.userProfile = null; S.currentUser = null;
+  showScreen("welcome");
+};
+
+// ── APP RENDER ────────────────────────────────────────────────────────────
+function renderApp() {
+  renderFilterBar();
+  renderMap();
+  renderStatsRow();
+  renderListView();
+  // Header avatar
+  const btn = document.getElementById("header-avatar-btn");
+  btn.innerHTML = "";
+  btn.appendChild(makeAvatarEl(S.userProfile || S.currentUser, 34));
+}
+
+function renderFilterBar() {
+  const bar = document.getElementById("filter-bar");
+  bar.innerHTML = "";
+  const all = document.createElement("button");
+  all.className = "filter-btn " + (S.activeSport==="all" ? "active-all" : "");
+  all.textContent = "Todos";
+  all.onclick = () => { S.activeSport="all"; renderApp(); };
+  bar.appendChild(all);
+  Object.entries(SPORTS).forEach(([key,s]) => {
+    const btn = document.createElement("button");
+    btn.className = "filter-btn " + (S.activeSport===key ? "active-"+key : "");
+    btn.textContent = s.emoji+" "+s.label;
+    btn.onclick = () => { S.activeSport=key; renderApp(); };
+    bar.appendChild(btn);
+  });
+}
+
+function renderMap() {
+  const svg = document.getElementById("map-svg");
+  svg.innerHTML = "";
+  // Districts
+  MAP_DISTRICTS.forEach(d => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",d.path); path.setAttribute("fill","#fafafa");
+    path.setAttribute("stroke","#ebebeb"); path.setAttribute("stroke-width","1.5");
+    svg.appendChild(path);
+    const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+    text.setAttribute("x",d.cx); text.setAttribute("y",d.cy);
+    text.setAttribute("text-anchor","middle"); text.setAttribute("font-size","8.5");
+    text.setAttribute("fill","#ccc"); text.setAttribute("font-weight","500");
+    text.textContent = d.label; svg.appendChild(text);
+  });
+  // Courts
+  const filtered = COURTS.filter(c => S.activeSport==="all" || c.sport===S.activeSport);
+  filtered.forEach(court => {
+    const pos = courtPos(court);
+    const sport = SPORTS[court.sport];
+    const isSel = S.selectedCourt?.id === court.id;
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.style.cursor = "pointer";
+    g.addEventListener("click", () => { S.selectedCourt = court; renderDetailPanel(); renderMap(); });
+    if (court.active) {
+      const pulse = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      pulse.setAttribute("cx",pos.x); pulse.setAttribute("cy",pos.y); pulse.setAttribute("r",isSel?22:15);
+      pulse.setAttribute("fill",sport.color); pulse.setAttribute("opacity","0.1");
+      g.appendChild(pulse);
+    }
+    const circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    circle.setAttribute("cx",pos.x); circle.setAttribute("cy",pos.y); circle.setAttribute("r",isSel?14:11);
+    circle.setAttribute("fill",court.active?sport.color:"#ccc"); circle.setAttribute("stroke","#fff"); circle.setAttribute("stroke-width","2.5");
+    g.appendChild(circle);
+    const emoji = document.createElementNS("http://www.w3.org/2000/svg","text");
+    emoji.setAttribute("x",pos.x); emoji.setAttribute("y",pos.y+4.5);
+    emoji.setAttribute("text-anchor","middle"); emoji.setAttribute("font-size",isSel?"11":"9");
+    emoji.textContent = sport.emoji; g.appendChild(emoji);
+    if (court.active) {
+      const bc = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      bc.setAttribute("cx",pos.x+9); bc.setAttribute("cy",pos.y-9); bc.setAttribute("r","8");
+      bc.setAttribute("fill","#fff"); bc.setAttribute("stroke",sport.color); bc.setAttribute("stroke-width","1.5");
+      g.appendChild(bc);
+      const bt = document.createElementNS("http://www.w3.org/2000/svg","text");
+      bt.setAttribute("x",pos.x+9); bt.setAttribute("y",pos.y-5.5);
+      bt.setAttribute("text-anchor","middle"); bt.setAttribute("font-size","7.5"); bt.setAttribute("font-weight","700");
+      bt.setAttribute("fill",sport.color); bt.textContent = court.players; g.appendChild(bt);
+    }
+    svg.appendChild(g);
+  });
+  renderDetailPanel();
+}
+
+function renderDetailPanel() {
+  const panel = document.getElementById("detail-panel");
+  if (!S.selectedCourt) {
+    panel.innerHTML = `
+      <div class="empty-panel">
+        <div style="font-size:32px;margin-bottom:10px">📍</div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:6px">Toca una cancha</div>
+        <div style="font-size:13px;color:#aaa;line-height:1.5">Selecciona un marcador para ver quién está jugando.</div>
+      </div>
+      <div class="stats-panel"><div class="stats-label">EN JUEGO AHORA</div><div class="stats-row" id="stats-row"></div></div>`;
+    renderStatsRow();
+    return;
+  }
+  const c = S.selectedCourt;
+  const sport = SPORTS[c.sport];
+  const occ = Math.round((c.players/c.max)*100);
+  const isJoined = S.joined[c.id];
+  const FAKE = ["Ana","Carlos","Marta","Luis","Pedro","Sara","Javi"];
+
+  let avatarsHTML = "";
+  for (let i=0; i<Math.min(c.players,5); i++) {
+    const col = avatarColor(FAKE[i]);
+    const init = FAKE[i][0];
+    avatarsHTML += `<div style="width:28px;height:28px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border:2px solid #fff;margin-left:${i===0?0:-8}px;z-index:${5-i}">${init}</div>`;
+  }
+  if (c.players>5) avatarsHTML += `<div style="width:28px;height:28px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#666;border:2px solid #fff;margin-left:-8px">+${c.players-5}</div>`;
+
+  panel.innerHTML = `
+    <div class="court-card">
+      <div class="court-card-header">
+        <div><div class="court-district">${c.district}</div><div class="court-name">${c.name}</div></div>
+        <span style="font-size:26px">${sport.emoji}</span>
+      </div>
+      <div class="occ-bar-wrap">
+        <div class="occ-bar-row"><span style="font-size:13px;color:#666">Jugadores</span><span style="font-weight:700;font-size:13px;color:${c.active?"#16a34a":"#aaa"}">${c.players}/${c.max}</span></div>
+        <div class="occ-bar-bg"><div class="occ-bar-fill" style="width:${occ}%;background:${occ>80?"#dc2626":sport.color}"></div></div>
+      </div>
+      ${c.active ? `<div style="margin-bottom:14px"><div style="font-size:12px;color:#aaa;margin-bottom:8px">Jugando ahora</div><div class="avatars-row">${avatarsHTML}</div></div>` : ""}
+      <div class="court-address">📍 ${c.address}</div>
+      <button class="join-btn ${isJoined?"joined":""}" onclick="toggleJoin(${c.id})">
+        ${isJoined ? "✓ Te has unido" : "Unirme al partido"}
+      </button>
+    </div>
+    <div class="stats-panel"><div class="stats-label">EN JUEGO AHORA</div><div class="stats-row" id="stats-row"></div></div>`;
+  renderStatsRow();
+}
+
+function renderStatsRow() {
+  const row = document.getElementById("stats-row");
+  if (!row) return;
+  row.innerHTML = "";
+  Object.entries(SPORTS).forEach(([key,s]) => {
+    const count = COURTS.filter(c=>c.sport===key&&c.active).reduce((a,c)=>a+c.players,0);
+    const box = document.createElement("div");
+    box.className = "stat-box";
+    box.style.background = s.bg;
+    box.innerHTML = `<div style="font-size:16px">${s.emoji}</div><div style="font-weight:800;font-size:15px;color:${s.color}">${count}</div>`;
+    row.appendChild(box);
+  });
+}
+
+function renderListView() {
+  const view = document.getElementById("list-view");
+  view.innerHTML = "";
+  const filtered = COURTS.filter(c => S.activeSport==="all"||c.sport===S.activeSport);
+  filtered.forEach(c => {
+    const s = SPORTS[c.sport];
+    const card = document.createElement("div");
+    card.className = "list-card";
+    card.innerHTML = `
+      <div class="list-icon" style="background:${s.bg}">${s.emoji}</div>
+      <div class="list-info"><div class="list-name">${c.name}</div><div class="list-district">${c.district}</div></div>
+      <div><div class="list-count" style="color:${c.active?s.color:"#ccc"}">${c.players}/${c.max}</div><div class="list-status" style="color:${c.active?"#16a34a":"#bbb"}">${c.active?"● Activo":"○ Vacío"}</div></div>`;
+    card.onclick = () => { S.selectedCourt=c; setTab("map"); };
+    view.appendChild(card);
+  });
+}
+
+window.toggleJoin = function(id) {
+  S.joined[id] = !S.joined[id];
+  renderDetailPanel();
+};
+
+window.setTab = function(tab) {
+  S.activeTab = tab;
+  document.getElementById("tab-map").classList.toggle("active", tab==="map");
+  document.getElementById("tab-list").classList.toggle("active", tab==="list");
+  document.getElementById("map-view").classList.toggle("hidden", tab!=="map");
+  document.getElementById("list-view").classList.toggle("hidden", tab!=="list");
+  if (tab==="map") renderMap();
+  if (tab==="list") renderListView();
+};
+
+// ── PROFILE RENDER ────────────────────────────────────────────────────────
+function renderProfile() {
+  const user = S.userProfile || S.currentUser;
+  if (!user) return;
+  // Avatar
+  const avEl = document.getElementById("profile-avatar");
+  avEl.innerHTML = "";
+  avEl.appendChild(makeAvatarEl(user, 72));
+  // Name
+  document.getElementById("profile-name").textContent = user.displayName || "—";
+  // Phone
+  const phoneEl = document.getElementById("profile-phone");
+  if (user.phone || user.phoneNumber) {
+    const p = user.phone || user.phoneNumber;
+    phoneEl.innerHTML = `📱 ${p} · <span style="color:#16a34a;font-weight:600">✓ Verificado</span>`;
+  } else { phoneEl.textContent = ""; }
+  // Tags
+  const tagsEl = document.getElementById("profile-tags");
+  tagsEl.innerHTML = "";
+  const sport = SPORTS[user.favSport] || SPORTS.football;
+  tagsEl.innerHTML = `
+    <span class="profile-tag" style="background:${sport.bg};color:${sport.color}">${sport.emoji} ${sport.label}</span>
+    <span class="profile-tag" style="background:#f0f0ee;color:#555">${user.level||"Casual"}</span>`;
+  // Stats
+  document.getElementById("stat-games").textContent = user.gamesPlayed || 0;
+  // History
+  const hist = document.getElementById("history-list");
+  hist.innerHTML = "";
+  COURTS.filter(c=>c.active).slice(0,3).forEach(c => {
+    const s = SPORTS[c.sport];
+    hist.innerHTML += `
+      <div class="history-card">
+        <div class="history-icon" style="background:${s.bg}">${s.emoji}</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px">${c.name}</div><div style="font-size:12px;color:#888">${c.district}</div></div>
+        <div style="font-size:12px;color:#16a34a;font-weight:600">Jugaste ✓</div>
+      </div>`;
+  });
+}
+
+// Init: build SMS boxes placeholder, start on welcome
+buildSMSBoxes();
+</script>
+</body>
+</html>
